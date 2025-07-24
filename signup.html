@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup - Rahl Bot Creator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
+  <div class="w-full max-w-sm p-6 bg-gray-800 rounded-xl">
+    <h2 class="text-2xl font-bold mb-4 text-center">Sign Up</h2>
+    <input id="email" type="email" placeholder="Email" class="w-full p-2 mb-3 rounded bg-gray-700">
+    <input id="password" type="password" placeholder="Password" class="w-full p-2 mb-3 rounded bg-gray-700">
+    <input id="referral" type="text" placeholder="Referral Code (optional)" class="w-full p-2 mb-3 rounded bg-gray-700">
+    <button onclick="register()" class="w-full bg-purple-600 py-2 rounded hover:bg-purple-700">Sign Up</button>
+    <p class="mt-4 text-center text-sm">Already have an account? <a href="login.html" class="underline text-blue-400">Login</a></p>
+  </div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module">
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { app } from './firebase-config.js';
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function register() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const referral = document.getElementById('referral').value || "none";
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          email,
+          coins: 20,
+          referralCodeUsed: referral,
+          createdAt: Date.now()
+        });
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+  </script>
+</body>
+</html>
