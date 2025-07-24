@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RAHL Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #0c0c0c;
+      color: white;
+      padding: 2rem;
+    }
+    .card {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 12px rgba(255,255,255,0.1);
+    }
+    .btn {
+      background: #ffcc00;
+      color: black;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Welcome, <span id="userEmail">Loading...</span></h2>
+    <p>Your coins: <strong id="userCoins">--</strong></p>
+    <button class="btn" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Firebase scripts -->
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const userEmail = document.getElementById("userEmail");
+    const userCoins = document.getElementById("userCoins");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Not logged in. Redirecting...");
+        window.location.href = "login.html";
+      } else {
+        userEmail.textContent = user.email;
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          userCoins.textContent = docSnap.data().coins;
+        } else {
+          userCoins.textContent = "0";
+        }
+      }
+    });
+
+    window.logout = async function () {
+      await signOut(auth);
+      alert("Logged out.");
+      window.location.href = "login.html";
+    };
+  </script>
+</body>
+</html>
