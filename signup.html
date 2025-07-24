@@ -19,30 +19,49 @@
   </div>
 
   <script type="module">
+    // ✅ Firebase Setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { app } from './firebase-config.js';
 
+    // ✅ Paste your Firebase config here
+    const firebaseConfig = {
+      apiKey: "AIzaSyDBdAGFtUpS7DjK9C8Wh4F47lQ3wzGTkU0",
+      authDomain: "rahl-bot-creator.firebaseapp.com",
+      projectId: "rahl-bot-creator",
+      storageBucket: "rahl-bot-creator.appspot.com",
+      messagingSenderId: "141487789717",
+      appId: "1:141487789717:web:5d04a92e2aa3f90fda1a8d"
+    };
+
+    // ✅ Init Firebase
+    const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Listen for button click inside the module
+    // ✅ Sign Up Button Handler
     document.getElementById('signupBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      const referral = document.getElementById('referral').value || "none";
+      const referral = document.getElementById('referral').value.trim() || "none";
+
+      if (!email || !password) return alert("Please fill in all required fields.");
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", userCredential.user.uid), {
+        const uid = userCredential.user.uid;
+
+        await setDoc(doc(db, "users", uid), {
           email,
           coins: 20,
           referralCodeUsed: referral,
           createdAt: Date.now()
         });
+
+        alert("Signup successful!");
         window.location.href = "dashboard.html";
       } catch (error) {
-        alert(error.message);
+        alert("Error: " + error.message);
       }
     });
   </script>
