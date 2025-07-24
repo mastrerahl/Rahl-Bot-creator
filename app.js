@@ -1,33 +1,38 @@
-// Signup
-async function signup(event) {
-  event.preventDefault();
-  const email = document.getElementById("signupEmail").value;
-  const password = document.getElementById("signupPassword").value;
-  try {
-    const userCred = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCred.user;
-    await setDoc(doc(db, "users", user.uid), {
-      email: user.email,
-      coins: 20,
-      createdAt: Date.now()
-    });
-    alert("Signup successful!");
-    window.location.href = "dashboard.html";
-  } catch (err) {
-    alert(err.message);
-  }
-}
+// app.js
+import { auth, db } from './firebase-config.js';
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 
-// Login
-async function login(event) {
-  event.preventDefault();
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    alert("Login successful!");
-    window.location.href = "dashboard.html";
-  } catch (err) {
-    alert("Login failed: " + err.message);
-  }
-}
+const botForm = document.getElementById("botForm");
+
+botForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const botName = document.getElementById("botName").value.trim();
+  const sessionID = document.getElementById("sessionID").value.trim();
+  const ownerNumber = document.getElementById("ownerNumber").value.trim();
+  const prefix = document.getElementById("prefix").value.trim();
+
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        await addDoc(collection(db, "bots"), {
+          userId: user.uid,
+          botName,
+          sessionID,
+          ownerNumber,
+          prefix,
+          createdAt: Timestamp.now()
+        });
+
+        alert("✅ Bot configuration saved!");
+        botForm.reset();
+      } catch (err) {
+        console.error("❌ Error saving bot:", err);
+        alert("Failed to save. Try again.");
+      }
+    } else {
+      alert("Please log in first.");
+    }
+  });
+});
