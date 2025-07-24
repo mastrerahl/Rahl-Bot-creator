@@ -1,66 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RAHL Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #0c0c0c;
-      color: white;
-      padding: 2rem;
-    }
-    .card {
-      background: #1a1a1a;
-      border-radius: 12px;
-      padding: 2rem;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 0 12px rgba(255,255,255,0.1);
-    }
-    .btn {
-      background: #ffcc00;
-      color: black;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rahl Host - Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="card">
-    <h2>Welcome, <span id="userEmail">Loading...</span></h2>
-    <p>Your coins: <strong id="userCoins">--</strong></p>
-    <button class="btn" onclick="logout()">Logout</button>
+  <div class="container">
+    <h1>Welcome to Rahl Host Dashboard</h1>
+    
+    <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+    <p><strong>Your Coins:</strong> <span id="userCoins">0</span></p>
+
+    <p id="claimMessage"></p>
+    <button class="btn" id="claimBtn" onclick="claimDaily()">Claim Daily +20 Coins</button>
+
+    <br><br>
+    <button class="btn red" onclick="logout()">Logout</button>
   </div>
 
-  <!-- Firebase scripts -->
-  <script type="module" src="firebase-config.js"></script>
   <script type="module">
-    import { auth, db } from './firebase-config.js';
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from './firebase-config.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     const userEmail = document.getElementById("userEmail");
     const userCoins = document.getElementById("userCoins");
+    let currentUser;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         alert("Not logged in. Redirecting...");
         window.location.href = "login.html";
       } else {
+        currentUser = user;
         userEmail.textContent = user.email;
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          userCoins.textContent = docSnap.data().coins;
+          const coins = docSnap.data().coins;
+          userCoins.textContent = coins;
+          checkClaimStatus();
         } else {
           userCoins.textContent = "0";
         }
       }
     });
+
+    function checkClaimStatus() {
+      const today = new Date().toLocaleDateString();
+      const lastClaimed = localStorage.getItem("lastClaimed");
+      const claimBtn = document.getElementById("claimBtn");
+      const claimMessage = document.getElementById("claimMessage");
+
+      if (lastClaimed === today) {
+        claimBtn.disabled = true;
+        claimBtn.textContent = "Claimed";
+        claimMessage.textContent = "✅ You already claimed today's reward.";
+      } else {
+        claimBtn.disabled = false;
+        claimBtn.textContent = "Claim Daily +20 Coins";
+        claimMessage.textContent = "";
+      }
+    }
+
+    async function claimDaily() {
+      const userId = currentUser.uid;
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const coins = docSnap.data().coins || 0;
+        const newCoins = coins + 20;
+        await setDoc(docRef, { coins: newCoins }, { merge: true });
+        userCoins.textContent = newCoins;
+        localStorage.setItem("lastClaimed", new Date().toLocaleDateString());
+        checkClaimStatus();
+        alert("🎉 20 coins claimed!");
+      }
+    }
 
     window.logout = async function () {
       await signOut(auth);
