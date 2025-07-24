@@ -1,18 +1,20 @@
 // firebase-config.js
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA6azGd5Qxi4uGETvBzqM-2NMH8BGsB0V0",
-  authDomain: "rahl-bot-creator-ef6f5.firebaseapp.com",
-  projectId: "rahl-bot-creator-ef6f5",
-  storageBucket: "rahl-bot-creator-ef6f5.firebasestorage.app",
-  messagingSenderId: "110560348909",
-  appId: "1:110560348909:web:953f4ca7f46312c0041ae4",
-  measurementId: "G-MDS0MEGKHD"
+  apiKey: "AIzaSyCXtKwD3bBNlTUkIXr-L0GGAtN3vSYeU6U", // ✅ New valid key
+  authDomain: "rahl-bot-creator.firebaseapp.com",
+  projectId: "rahl-bot-creator",
+  storageBucket: "rahl-bot-creator.appspot.com",
+  messagingSenderId: "141487789717",
+  appId: "1:141487789717:web:5d04a92e2aa3f90fda1a8d"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-export { app };
+export { auth, db };
