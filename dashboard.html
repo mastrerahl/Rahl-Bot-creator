@@ -10,7 +10,7 @@
   <div class="container">
     <h1>Welcome to Rahl Host Dashboard</h1>
     
-    <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+    <p><strong>Email:</strong> <span id="userEmail">Not Logged In</span></p>
     <p><strong>Your Coins:</strong> <span id="userCoins">0</span></p>
 
     <p id="claimMessage"></p>
@@ -32,24 +32,26 @@
 
     const userEmail = document.getElementById("userEmail");
     const userCoins = document.getElementById("userCoins");
-    let currentUser;
+    let currentUser = null;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        alert("Not logged in. Redirecting...");
-        window.location.href = "login.html";
-      } else {
+      if (user) {
         currentUser = user;
         userEmail.textContent = user.email;
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const coins = docSnap.data().coins;
+          const coins = docSnap.data().coins || 0;
           userCoins.textContent = coins;
-          checkClaimStatus();
         } else {
           userCoins.textContent = "0";
         }
+        checkClaimStatus();
+      } else {
+        // User is not logged in
+        userEmail.textContent = "Not Logged In";
+        userCoins.textContent = "0";
+        checkClaimStatus();
       }
     });
 
@@ -71,6 +73,11 @@
     }
 
     async function claimDaily() {
+      if (!currentUser) {
+        alert("⚠️ Please login to claim coins.");
+        return;
+      }
+
       const userId = currentUser.uid;
       const docRef = doc(db, "users", userId);
       const docSnap = await getDoc(docRef);
