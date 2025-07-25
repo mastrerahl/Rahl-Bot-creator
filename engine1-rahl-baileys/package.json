@@ -1,0 +1,16 @@
+{
+  "name": "rahl-baileys-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp Bot Powered by Lord Rahl Hosting",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Lord Rahl",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "chalk": "^5.3.0",
+    "figlet": "^1.5.2",
+    "pino": "^8.14.1"
+  }
+}
